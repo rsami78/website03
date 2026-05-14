@@ -44,7 +44,7 @@ def anonymize_bids():
         anon_bids.append({
             "bidder":bid["bidder"],
             "amount": bid["amount"],
-            "property_id": bid["property_id"],
+            "property": bid["property"],
             "time": bid["time"]
         })
         
@@ -63,7 +63,7 @@ def home():
 
 @app.route("/live-bidding")
 def live_bidding():
-    return send_from_directory(".", "live_bidding.html")
+    return send_from_directory(".", "live-bidding.html")
 
 
 
@@ -202,7 +202,7 @@ def handle_connect():
 
 @socketio.on("new_bid")
 def handle_new_bid(data):
-    name = data.get("name")
+    name = data.get("name", "").strip()
     email = data.get("email", "").strip()
     phone = data.get("phone", "").strip()
     amount = data.get("amount")

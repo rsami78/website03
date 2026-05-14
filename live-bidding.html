@@ -45,14 +45,16 @@
 
                 <form @submit.prevent="sendBid">
                     <input v-model="name" placeholder="Your name" required>
+                    <input v-model="email" type="email" placeholder="Email" required>
+                    <input v-model="phone" placeholder="Phone number" required>
                     <input v-model="amount" type="number" placeholder="Bid amount" required>
                     <button type="submit">Place bid</button>
                 </form>
 
                 <h2>Current Bids</h2>
                 <ul>
-                    <li v-for="bid in bids" :key="bid.id">
-                        {{ bid.name }}: {{ bid.amount }} kr
+                    <li v-for="(bid, index) in bids" :key="index">
+                        {{ bid.bidder }}: {{ bid.amount }} kr - {{ bid.time }}
                     </li>
                 </ul>
 
@@ -83,6 +85,8 @@
                 socket: null,
                 bids: [],
                 name: "",
+                email: "",
+                phone: "",
                 amount: "",
                 chart: null
             };
@@ -91,9 +95,14 @@
         mounted() {
             this.socket = io("http://127.0.0.1:5000");
 
-            this.socket.on("update_bids", (data) => {
+            this.socket.on("bids_update", (data) => {
+                console.log("Received bids:", data);
                 this.bids = data;
                 this.updateChart();
+            });
+
+            this.socket.on("bid_error", (error) => {
+                alert(error.message);
             });
         },
 
@@ -101,15 +110,23 @@
             sendBid() {
                 this.socket.emit("new_bid", {
                     name: this.name,
+                    email: this.email,
+                    phone: this.phone,
+                    property: "Selected property",
                     amount: this.amount
                 });
 
                 this.name = "";
+                this.email = "";
+                this.phone = "";
                 this.amount = "";
             },
 
             updateChart() {
-                const labels = this.bids.map(b =>new Date(b.time * 1000).toLocaleTimeString());
+                const labels = this.bids.map((bid, index) => {
+                    return "Bid " + (index + 1);
+                });
+
                 const values = this.bids.map(b => b.amount);
 
                 if (this.chart) {
@@ -125,6 +142,14 @@
                             data: values,
                             tension: 0.3
                         }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
                     }
                 });
             }
