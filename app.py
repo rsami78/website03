@@ -6,29 +6,76 @@ from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 
 app = Flask(__name__, static_folder=".", static_url_path="")
+app.config['SECRET_KEY'] = 'secret'
 CORS(app)
 
 db_path = os.path.join(os.path.dirname(__file__), 'HouseSalesSeattle.db')
-connection = sqlite3.connect(db_path, check_same_thread=False)
-cursor = connection.cursor()
+#connection = sqlite3.connect(db_path, check_same_thread=False)
+#cursor = connection.cursor()
 
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-bids = [
-    {"name": "Albin", "amount": 2500000},
-    {"name": "Hudeyfi", "amount": 2600000}
-]
+def get_db_connection():
+    #return sqlite3.connect(db_path, check_same_thread=False)
+    connection = sqlite3.connect(db_path)
+    connection.row_factory = sqlite3.Row
+    return connection
+
+#stores all bids 
+bids = []
+
+
+#stores bidder alias name
+bidder_aliases = {}
+
+
+def get_bidder_alias(name, email, phone):
+    bidder_key = f"bidder_{name}_{email}_{phone}"
+    
+    if bidder_key not in bidder_aliases:
+        bidder_aliases[bidder_key] = f"Bidder {len(bidder_aliases) + 1}"
+        
+    return bidder_aliases[bidder_key]
+
+def anonymize_bids():
+    anon_bids = []
+    
+    for bid in bids:
+        anon_bids.append({
+            "bidder":bid["bidder"],
+            "amount": bid["amount"],
+            "property_id": bid["property_id"],
+            "time": bid["time"]
+        })
+        
+    return anon_bids
+
+
+
+
+
+
 
 @app.route("/")
 def home():
     return send_from_directory(".", "husindex.html")
 
 
-@app.route("/test-db")
-def test_db():
-    cursor.execute("SELECT * FROM HouseSalesSeattle LIMIT 5")
-    rows = cursor.fetchall()
-    return jsonify(rows)
+@app.route("/live-bidding")
+def live_bidding():
+    return send_from_directory(".", "live_bidding.html")
+
+
+
+@app.route("/realtor")
+def realtor():
+    return send_from_directory(".", "realtor.html")
+
+
+@app.route("/market-analysis")
+def market_analysis():
+    return send_from_directory(".", "market-analysis.html")
+
 
 
 @app.route("/api/properties")
@@ -81,23 +128,28 @@ def get_properties():
         LIMIT ? OFFSET ?
     """
 
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    
     cursor.execute(count_query, params)
     total = cursor.fetchone()[0]
 
     cursor.execute(data_query, params + [per_page, offset])
     rows = cursor.fetchall()
+    
+    connection.close()
 
     properties = []
 
     for row in rows:
         properties.append({
-            "SalesID": row[0],
-            "Image": row[1],
-            "zip_code": row[2],
-            "AdjSalePrice": row[3],
-            "Bedrooms": row[4],
-            "Bathrooms": row[5],
-            "SqMTotLiving": row[6]
+            "SalesID": row["SalesID"],
+            "Image": row["Image"],
+            "zip_code": row["zip_code"],
+            "AdjSalePrice": row["AdjSalePrice"],
+            "Bedrooms": row["Bedrooms"],
+            "Bathrooms": row["Bathrooms"],
+            "SqMTotLiving": row["SqMTotLiving"]
         })
 
     return jsonify({
@@ -110,47 +162,88 @@ def get_properties():
 
 @app.route("/api/bids")
 def get_bids():
-    return jsonify(bids)
+    return jsonify({
+        "anon_bids": anonymize_bids(),
+        "realtor_bids": bids
+    })
 
 
 @app.route("/api/price-per-zip")
 def price_per_zip():
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    
     cursor.execute("""
-        SELECT zip_code, AVG(AdjSalePrice)
+        SELECT zip_code, AVG(AdjSalePrice) AS average_price
         FROM HouseSalesSeattle
         GROUP BY zip_code
+        ORDER BY average_price DESC
         LIMIT 10
     """)
 
     rows = cursor.fetchall()
+    
+    connection.close()
 
     data = {
-        "labels": [row[0] for row in rows],
-        "values": [row[1] for row in rows]
+        "labels": [row["zip_code"] for row in rows],
+        "values": [round(row["average_price"], 2) for row in rows]
     }
 
     return jsonify(data)
 
+
+
 @socketio.on("connect")
 def handle_connect():
-    emit("update_bids", bids)
+    emit("bids_update", anonymize_bids())
+    emit("realtor_bids_update", bids)
 
 
 @socketio.on("new_bid")
 def handle_new_bid(data):
     name = data.get("name")
+    email = data.get("email", "").strip()
+    phone = data.get("phone", "").strip()
     amount = data.get("amount")
+    property_name = data.get("property", "Selected property").strip()
 
-    if name and amount:
-        bid = {
-            "name": name,
-            "amount": int(amount),
-            "time": time.time()
-        }
+    if not name or not email or not phone or not amount:
+        emit("bid_error", {
+            "message": "Name, email, phone and amount are required."
+        })
+        return
 
-        bids.append(bid)
+    try:
+        amount = int(amount)
+    except ValueError:
+        emit("bid_error", {
+            "message": "Bid amount must be a number."
+        })
+        return
 
-        socketio.emit("update_bids", bids)
+    if amount <= 0:
+        emit("bid_error", {
+            "message": "Bid amount must be greater than 0."
+        })
+        return
+
+    bidder_alias = get_bidder_alias(name, email, phone)
+
+    bid = {
+        "name": name,
+        "email": email,
+        "phone": phone,
+        "bidder": bidder_alias,
+        "amount": amount,
+        "property": property_name,
+        "time": time.strftime("%Y-%m-%d %H:%M:%S")
+    }
+
+    bids.append(bid)
+
+    socketio.emit("bids_update", anonymize_bids())
+    socketio.emit("realtor_bids_update", bids)
 
 
 if __name__ == "__main__":
