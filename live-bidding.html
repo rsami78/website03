@@ -51,8 +51,26 @@
                     <button type="submit">Place bid</button>
                 </form>
 
+                <div v-if="selectedPropertyData" class="selected-property">
+                    <img
+                        :src="'houseImages/256x256/' + selectedPropertyData.Image + '.jpg'"
+                        :alt="'Property ' + selectedPropertyData.SalesID"
+                        class="property-image"
+                    >
+                    <div class="property-info">
+                        <h2>Property {{ selectedPropertyData.SalesID }}</h2>
+
+                        <p><strong>Zip code:</strong> {{ selectedPropertyData.zip_code }}</p>
+                        <p><strong>Price:</strong> {{ formatPrice(selectedPropertyData.AdjSalePrice) }}</p>
+                        <p><strong>Bedrooms:</strong> {{ selectedPropertyData.Bedrooms }}</p>
+                        <p><strong>Bathrooms:</strong> {{ selectedPropertyData.Bathrooms }}</p>
+                        <p><strong>Living area:</strong> {{selectedPropertyData.SqMTotLiving }} m²</p>
+                    </div>                        
+                </div>
+
                 <h2>Current Bids</h2>
                 <ul>
+                    <li><p><strong>Highest bid:</strong>{{ highestBid }} kr</p></li>
                     <li v-for="(bid, index) in bids" :key="index">
                         {{ bid.bidder }}: {{ bid.amount }} kr - {{ bid.time }}
                     </li>
@@ -88,16 +106,32 @@
                 email: "",
                 phone: "",
                 amount: "",
-                chart: null
+                chart: null,
+                properties: [],
+                selectedProperty: "",
+                selectedPropertyData: null
             };
         },
 
         mounted() {
             this.socket = io("http://127.0.0.1:5000");
 
+            const params = new URLSearchParams(window.location.search);
+            const propertyId = params.get("property");
+
+            this.selectedProperty = propertyId || "";
+            if (!this.selectedProperty) {
+                alert("No property selected.");
+                window.location.href = "properties.html";
+                return;
+            }
+            this.fetchProperties();    
+
             this.socket.on("bids_update", (data) => {
                 console.log("Received bids:", data);
-                this.bids = data;
+                this.bids = data.filter(
+                    bid => String(bid.property) === String(this.selectedProperty)
+                );
                 this.updateChart();
             });
 
@@ -107,12 +141,25 @@
         },
 
         methods: {
+            fetchProperties() {
+                fetch("http://127.0.0.1:5000/api/properties?per_page=1000")
+                    .then(res => res.json())
+                    .then(data => {
+                        this.properties = data.properties;
+                        this.selectedPropertyData = this.properties.find(
+                            p => String(p.SalesID) === String(this.selectedProperty)
+                        );
+                    });
+            },
+             formatPrice(price) {
+                return Number(price).toLocaleString('sv-SE') + ' kr';
+            },
             sendBid() {
                 this.socket.emit("new_bid", {
                     name: this.name,
                     email: this.email,
                     phone: this.phone,
-                    property: "Selected property",
+                    property: this.selectedProperty,
                     amount: this.amount
                 });
 
@@ -152,8 +199,17 @@
                         }
                     }
                 });
+            },            
+        },
+        computed: {
+            highestBid() {
+                if (this.bids.length === 0) {
+                    return 0;
+                }
+
+                return Math.max(...this.bids.map(b => b.amount));
             }
-        }
+        }        
     });
 
     app.mount("#app");

@@ -51,6 +51,11 @@
                     <button class="remove-favorite-btn" @click="removeFavorite(property.SalesID)">
                         Remove favorite
                     </button>
+
+                    <button class="go-to-live-bidding-btn" @click="GoToLiveBidding(property.SalesID)">
+                        Bid now
+                    </button>
+
                 </div>
             </div>
         </div>
@@ -90,8 +95,11 @@
             removeFavorite(salesID) {
                 this.favorites = this.favorites.filter(property => property.SalesID !== salesID);
                 localStorage.setItem('favorites', JSON.stringify(this.favorites));
+            },
+            GoToLiveBidding(salesID) {
+                window.location.href = 'live-bidding.html?property=' + salesID;
             }
-        }
+        }    
     });
 
     app.mount('#app');

@@ -189,6 +189,7 @@
                     <thead>
                         <tr>
                             <th>Image</th>
+                            <th>Live Bidding</th>                            
                             <th>Zip Code</th>
                             <th>Price</th>
                             <th>Bedrooms</th>
@@ -200,7 +201,7 @@
 
                     <tbody>
                         <tr v-if="properties.length === 0">
-                            <td colspan="6">No properties match your filters.</td>
+                            <td colspan="8">No properties match your filters.</td>
                         </tr>
 
                         <tr v-for="property in properties" :key="property.SalesID">
@@ -209,6 +210,11 @@
                                     :src="'houseImages/256x256/' + property.Image + '.jpg'"
                                     :alt="'House in zip code ' + property.zip_code"
                                 >
+                            </td>
+                            <td>
+                                <a class="bid-button" :href="'live-bidding.html?property=' + property.SalesID">
+                                    Bid now
+                                </a>
                             </td>
                             <td>{{ property.zip_code }}</td>
                             <td>{{ formatPrice(property.AdjSalePrice) }}</td>

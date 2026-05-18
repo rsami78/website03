@@ -44,6 +44,18 @@ body {
     transition: background-color 0.2s ease;
 }
 
+.go-to-live-bidding-btn{
+     margin-top: 12px;
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
 .remove-favorite-btn:hover {
     background-color: #005ecb;
 }

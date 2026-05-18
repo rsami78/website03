@@ -234,5 +234,19 @@ main {
     .properties-table img {
         width: 90px;
         height: 65px;
-    }
+    }   
 }
+ 
+.bid-button {
+    display: inline-block;
+    padding: 6px 10px;
+    background: #2e6cff;
+    color: white;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 13px;
+    }
+
+    .bid-button:hover {
+        background: #1f4fd1;
+    }

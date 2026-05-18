@@ -92,8 +92,11 @@ def get_properties():
     if per_page < 1:
         per_page = 12
 
-    if per_page > 15:
-        per_page = 15
+    # if per_page > 15:
+    #     per_page = 15
+    
+    if per_page > 1000:
+        per_page = 1000    
 
     offset = (page - 1) * per_page
 
@@ -225,6 +228,22 @@ def handle_new_bid(data):
     if amount <= 0:
         emit("bid_error", {
             "message": "Bid amount must be greater than 0."
+        })
+        return
+    
+    existing_bids = [
+        b for b in bids
+        if str(b["property"]) == str(property_name)
+    ]
+
+    highest_bid = max(
+        [b["amount"] for b in existing_bids],
+        default=0
+    )
+
+    if amount <= highest_bid:
+        emit("bid_error", {
+            "message": "Bid must be higher than current highest bid."
         })
         return
 
