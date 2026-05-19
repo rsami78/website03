@@ -70,7 +70,7 @@
 
                 <h2>Current Bids</h2>
                 <ul>
-                    <li><p><strong>Highest bid:</strong>{{ formatPrice(highestBid) }}</p></li>
+                    <li v-if="selectedProperty"><p><strong >Highest bid:</strong>{{ formatPrice(highestBid) }}</p></li>
                     <li v-for="(bid, index) in bids" :key="index">
                         <Strong v-if="!selectedProperty">Property {{bid.property}} - </Strong>
                         {{ bid.bidder}}, Bid:
@@ -142,6 +142,7 @@
                 
                 this.socket.on("bids_update", (data) => {
                     this.bids = data;
+                    this.updateChart();
                 });
 
                 return;
