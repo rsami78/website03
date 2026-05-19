@@ -70,9 +70,12 @@
 
                 <h2>Current Bids</h2>
                 <ul>
-                    <li><p><strong>Highest bid:</strong>{{ highestBid }} kr</p></li>
+                    <li><p><strong>Highest bid:</strong>{{ formatPrice(highestBid) }}</p></li>
                     <li v-for="(bid, index) in bids" :key="index">
-                        {{ bid.bidder }}: {{ bid.amount }} kr - {{ bid.time }}
+                        <Strong v-if="!selectedProperty">Property {{bid.property}} - </Strong>
+                        {{ bid.bidder}}, Bid:
+                        {{ formatPrice(bid.amount) }} - 
+                       <small>{{ bid.time }}</small> 
                     </li>
                 </ul>
 
@@ -119,14 +122,32 @@
             const params = new URLSearchParams(window.location.search);
             const propertyId = params.get("property");
 
-            this.selectedProperty = propertyId || "";
-            if (!this.selectedProperty) {
-                alert("No property selected.");
-                window.location.href = "properties.html";
-                return;
-            }
-            this.fetchProperties();    
+            if (propertyId) {
+                this.selectedProperty = propertyId;
 
+                // spara senaste property
+                localStorage.setItem("lastProperty", propertyId);
+
+            } else {
+
+                // ingen property vald = visa alla bids
+                this.selectedProperty = "";
+            }
+            
+            // Hämta properties alltid
+            this.fetchProperties();
+            
+            // Ingen property vald → visa alla bids           
+            if (!this.selectedProperty) {                               
+                
+                this.socket.on("bids_update", (data) => {
+                    this.bids = data;
+                });
+
+                return;
+            }          
+
+            // Property vald → visa bara bids för den
             this.socket.on("bids_update", (data) => {
                 console.log("Received bids:", data);
                 this.bids = data.filter(
@@ -161,12 +182,14 @@
                     phone: this.phone,
                     property: this.selectedProperty,
                     amount: this.amount
+                    
                 });
 
                 this.name = "";
                 this.email = "";
                 this.phone = "";
                 this.amount = "";
+                localStorage.setItem("lastProperty", this.selectedProperty);
             },
 
             updateChart() {
