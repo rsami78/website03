@@ -153,6 +153,20 @@ main{
     color: white;
 }
 
+
+.footer-cont {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.footer-links {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+
 .footer-links a {
     text-decoration: none;
     color: white;
