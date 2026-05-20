@@ -170,6 +170,21 @@ def get_bids():
         "realtor_bids": bids
     })
 
+@app.route("/api/realtor-login", methods=["POST"])
+def realtor_login():
+    data = request.get_json()
+    username = data.get("username", "").strip()
+    password = data.get("password", "").strip()
+ 
+    # Hardcoded realtor credentials
+    REALTOR_USERNAME = "realtor"
+    REALTOR_PASSWORD = "123"
+ 
+    if username == REALTOR_USERNAME and password == REALTOR_PASSWORD:
+        return jsonify({"success": True, "message": "Login successful"})
+    else:
+        return jsonify({"success": False, "message": "Invalid username or password"}), 401
+
 
 @app.route("/api/price-per-zip")
 def price_per_zip():
