@@ -1,0 +1,169 @@
+body {
+    background-color: #f4f6f4;
+}
+
+main {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 50px 20px;
+}
+
+#app {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.content {
+    width: 100%;
+    max-width: 320px;
+    min-height: 250px;
+    background-color: white;
+    padding: 40px;
+    border-radius: 18px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+
+.content h1 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 25px;
+    color: #1f2933;
+}
+
+
+.content form {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+
+.content input {
+    padding: 14px 16px;
+    border: 1px solid var(--khaki);
+    border-radius: 15px;
+    font-size: 15px;
+    outline: none;
+}
+
+.content input:focus {
+    border-color: var(--teal-muted);
+    box-shadow: 0 0 0 3px rgba(131, 151, 136, 0.2);
+}
+
+/* Btn */
+.content button {
+    padding: 14px 16px;
+    background-color: var(--teal-muted);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.content button:hover {
+    background-color: var(--khaki);
+}
+
+/* Error msg */
+.content p[style*="color: red"] {
+    color: #b00020 !important;
+    background-color: #ffecec;
+    padding: 10px 12px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+
+.content ul {
+    list-style: none;
+    padding: 0;
+}
+
+.content li {
+    background-color: #f8faf8;
+    border-left: 5px solid var(--teal-muted);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    line-height: 1.6;
+}
+
+.content select {
+    padding: 10px 12px;
+    border: 1px solid var(--khaki);
+    border-radius: 8px;
+}
+
+
+
+/* responsive mindre skärm */
+@media (max-width: 768px) {
+    main {
+        padding: 30px 15px;
+        align-items: flex-start;
+    }
+
+    .content {
+        width: 100%;
+        max-width: none;
+        padding: 25px 20px;
+        border-radius: 14px;
+    }
+
+    .content h1 {
+        font-size: 26px;
+    }
+
+    .content input,
+    .content button,
+    .content select {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .content form {
+        width: 100%;
+    }
+
+    .content li {
+        font-size: 14px;
+        padding: 12px 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    main {
+        padding: 20px 10px;
+    }
+
+    .content {
+        padding: 20px 15px;
+        border-radius: 12px;
+    }
+
+    .content h1 {
+        font-size: 23px;
+    }
+
+    .content h2 {
+        font-size: 20px;
+    }
+
+    .content input,
+    .content button,
+    .content select {
+        font-size: 14px;
+        padding: 12px;
+    }
+
+    .content li {
+        font-size: 13px;
+        line-height: 1.5;
+    }
+}
