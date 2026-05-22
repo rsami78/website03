@@ -9,6 +9,7 @@ main {
     padding: 50px 20px;
 }
 
+/* hjälper med att centrera  */
 #app {
     width: 100%;
     display: flex;

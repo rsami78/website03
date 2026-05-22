@@ -130,6 +130,16 @@
             }
         },
 
+        <!-- inloggning session -->
+        mounted() {
+            const realtorLoggedIn = sessionStorage.getItem("realtorLoggedIn");
+
+            if (realtorLoggedIn === "true") {
+                this.loggedIn = true;
+                this.connectSocket();
+            }
+        },
+
         methods: {
             async login() {
                 this.loginError = "";
@@ -142,6 +152,7 @@
                     const data = await res.json();
                     if (res.ok && data.success) {
                         this.loggedIn = true;
+                        sessionStorage.setItem("realtorLoggedIn", "true");
                         this.connectSocket();
                     } else {
                         this.loginError = data.message || "Invalid credentials.";
@@ -156,6 +167,7 @@
                 this.username = "";
                 this.password = "";
                 this.allBids = [];
+                sessionStorage.removeItem("realtorLoggedIn");
                 if (this.socket) {
                     this.socket.disconnect();
                     this.socket = null;
