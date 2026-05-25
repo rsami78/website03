@@ -55,10 +55,8 @@
                 <div v-else>
                     <h1>Realtor Dashboard</h1>
 
-                    <p><strong>Total bids:</strong> {{ allBids.length }}</p>
-                    <p><strong>Highest bid:</strong> {{ highestBid }} kr</p>
 
-                    <br>
+   
 
                     <label>Filter by property:
                         <select v-model="filterProperty">
@@ -71,12 +69,12 @@
 
                     <br><br>
 
-                    <h2>All Bids</h2>
+                    <h2>Bids</h2>
                     <p v-if="filteredBids.length === 0">No bids yet.</p>
                     <ul>
                         <li v-for="(bid, index) in filteredBids" :key="index">
                             <strong>{{ bid.name }}</strong> ({{ bid.email }}, {{ bid.phone }}) —
-                            Property {{ bid.property }}: {{ bid.amount }} kr — {{ bid.time }}
+                            Property {{ bid.property }}: {{ bid.amount }} $ — {{ bid.time }}
                         </li>
                     </ul>
 
